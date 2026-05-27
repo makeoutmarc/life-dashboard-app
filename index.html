@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Life Dashboard App</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #f4f6f8;
+        --panel: #ffffff;
+        --text: #17202a;
+        --muted: #64748b;
+        --line: #d9e2ec;
+        --green: #1f9d55;
+        --blue: #2563eb;
+        --amber: #d97706;
+        --red: #dc2626;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: var(--bg);
+        color: var(--text);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+      }
+
+      main {
+        width: min(1120px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 28px 0 40px;
+      }
+
+      header {
+        display: flex;
+        align-items: flex-end;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 22px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 32px;
+        line-height: 1.15;
+      }
+
+      .date {
+        color: var(--muted);
+        font-size: 15px;
+        margin-top: 6px;
+      }
+
+      .score {
+        min-width: 180px;
+        padding: 14px 16px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        text-align: right;
+      }
+
+      .score strong {
+        display: block;
+        color: var(--green);
+        font-size: 34px;
+        line-height: 1;
+      }
+
+      .score span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1.4fr 1fr;
+        gap: 16px;
+      }
+
+      section,
+      .metric {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      section {
+        padding: 18px;
+      }
+
+      h2 {
+        font-size: 18px;
+        line-height: 1.2;
+        margin-bottom: 16px;
+      }
+
+      .metrics {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 12px;
+      }
+
+      .metric {
+        padding: 14px;
+      }
+
+      .metric label {
+        display: block;
+        color: var(--muted);
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+
+      .metric strong {
+        display: block;
+        font-size: 24px;
+      }
+
+      .progress {
+        height: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e7edf3;
+        margin-top: 12px;
+      }
+
+      .progress > div {
+        height: 100%;
+        border-radius: inherit;
+        background: var(--blue);
+      }
+
+      .habits {
+        display: grid;
+        gap: 10px;
+      }
+
+      .habit {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid var(--line);
+      }
+
+      .habit:last-child {
+        border-bottom: 0;
+      }
+
+      .habit span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .pill {
+        min-width: 72px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        color: #ffffff;
+        font-size: 13px;
+        font-weight: 700;
+        text-align: center;
+      }
+
+      .done {
+        background: var(--green);
+      }
+
+      .open {
+        background: var(--amber);
+      }
+
+      .missed {
+        background: var(--red);
+      }
+
+      @media (max-width: 760px) {
+        main {
+          width: min(100% - 24px, 520px);
+          padding-top: 18px;
+        }
+
+        header,
+        .grid {
+          display: grid;
+          grid-template-columns: 1fr;
+        }
+
+        .score {
+          text-align: left;
+        }
+
+        .metrics {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>Life Dashboard</h1>
+          <p class="date">MVP Preview fuer dein persoenliches iPhone-System</p>
+        </div>
+        <div class="score">
+          <strong>72%</strong>
+          <span>Disziplin-Score diese Woche</span>
+        </div>
+      </header>
+
+      <div class="grid">
+        <section>
+          <h2>Heute</h2>
+          <div class="metrics">
+            <div class="metric">
+              <label>Kalorien</label>
+              <strong>1.840 / 2.300</strong>
+              <div class="progress" aria-label="Kalorien Fortschritt">
+                <div style="width: 80%"></div>
+              </div>
+            </div>
+            <div class="metric">
+              <label>Protein</label>
+              <strong>142g / 180g</strong>
+              <div class="progress" aria-label="Protein Fortschritt">
+                <div style="width: 79%"></div>
+              </div>
+            </div>
+            <div class="metric">
+              <label>Schritte</label>
+              <strong>7.400 / 10.000</strong>
+              <div class="progress" aria-label="Schritte Fortschritt">
+                <div style="width: 74%"></div>
+              </div>
+            </div>
+            <div class="metric">
+              <label>Gym</label>
+              <strong>Push Day</strong>
+              <div class="progress" aria-label="Gym Fortschritt">
+                <div style="width: 100%"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section>
+          <h2>Tagesziele</h2>
+          <div class="habits">
+            <div class="habit">
+              <div>
+                <strong>Gym erledigt</strong>
+                <span>Training fuer heute abgehakt</span>
+              </div>
+              <div class="pill done">Ja</div>
+            </div>
+            <div class="habit">
+              <div>
+                <strong>Kalorien im Ziel</strong>
+                <span>Noch im geplanten Bereich</span>
+              </div>
+              <div class="pill done">Ja</div>
+            </div>
+            <div class="habit">
+              <div>
+                <strong>Protein erreicht</strong>
+                <span>38g fehlen noch</span>
+              </div>
+              <div class="pill open">Offen</div>
+            </div>
+            <div class="habit">
+              <div>
+                <strong>Schlaf getrackt</strong>
+                <span>Kommt spaeter ins MVP</span>
+              </div>
+              <div class="pill missed">Nein</div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </body>
+</html>
+
