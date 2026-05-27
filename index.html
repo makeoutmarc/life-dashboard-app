@@ -297,6 +297,77 @@
         color: var(--text-main);
       }
 
+      .scanned-item-controls {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+
+      .scanned-item-controls input {
+        width: 80px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+      }
+
+      .scanned-item-controls button {
+        padding: 8px 12px;
+      }
+
+      .calorie-status {
+        font-size: 1.25rem;
+        font-weight: 700;
+        padding: 12px 16px;
+        border-radius: 14px;
+        text-align: center;
+        margin-bottom: 12px;
+      }
+
+      .calorie-status.green {
+        background: rgba(34, 197, 94, 0.15);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.3);
+      }
+
+      .calorie-status.red {
+        background: rgba(220, 38, 38, 0.15);
+        color: #dc2626;
+        border: 1px solid rgba(220, 38, 38, 0.3);
+      }
+
+      .photo-capture-section {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      #nutrition-photo-input {
+        display: none;
+      }
+
+      #nutrition-photo-preview {
+        width: 100%;
+        max-width: 300px;
+        border-radius: 12px;
+        margin-top: 8px;
+      }
+
+      .photo-capture-result {
+        display: grid;
+        gap: 10px;
+        padding: 12px;
+        border-radius: 14px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+        margin-top: 8px;
+      }
+
       .todo-input {
         width: 100%;
         padding: 14px 16px;
@@ -569,6 +640,17 @@
               </div>
             </div>
 
+            <div class="photo-capture-section">
+              <label><strong>📸 Nährwert-Label fotografieren</strong></label>
+              <p class="footer-note">Fotografiere die Nährwertangaben eines Produkts. Die App liest die Werte automatisch aus.</p>
+              <input id="nutrition-photo-input" type="file" accept="image/*" capture="environment" />
+              <button type="button" class="btn btn-secondary" id="photo-capture-btn" style="width: fit-content;">Foto aufnehmen</button>
+              <img id="nutrition-photo-preview" />
+              <div id="photo-capture-result"></div>
+            </div>
+
+            <div class="calorie-status" id="calorie-status">0 % · Grün</div>
+
             <div class="scanned-list" id="scanned-list"></div>
             <p class="footer-note" id="macro-note">Scanne ein Produkt, um die Makros automatisch zu laden.</p>
           </div>
@@ -628,6 +710,11 @@
       const scannedListEl = document.getElementById("scanned-list");
       const macroNote = document.getElementById("macro-note");
       const macroStatusEl = document.getElementById("macro-status");
+      const calorieStatusEl = document.getElementById("calorie-status");
+      const photoCaptureBtn = document.getElementById("photo-capture-btn");
+      const nutritionPhotoInput = document.getElementById("nutrition-photo-input");
+      const nutritionPhotoPreview = document.getElementById("nutrition-photo-preview");
+      const photoCaptureResult = document.getElementById("photo-capture-result");
       const caloriesValue = document.getElementById("calories-value");
       const proteinValue = document.getElementById("protein-value");
       const carbsValue = document.getElementById("carbs-value");
@@ -636,7 +723,6 @@
       const proteinBar = document.getElementById("protein-bar");
       const carbsBar = document.getElementById("carbs-bar");
       const fatBar = document.getElementById("fat-bar");
-
       const dayNames = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
       const days = dayNames.map((label) => ({
         label,
@@ -744,11 +830,16 @@
       function updateMacroCard() {
         const totals = getSelectedDay().totals;
         const percent = macroGoals.calories > 0 ? Math.min(100, Math.round((totals.calories / macroGoals.calories) * 100)) : 0;
+        const isOver = totals.calories > macroGoals.calories;
+        const statusColor = isOver ? "red" : "green";
+        const statusText = isOver ? "Über dem Ziel" : "Im Plan";
         macroStatusEl.textContent = `${percent} %`;
+        calorieStatusEl.textContent = `${percent} % · ${statusText}`;
+        calorieStatusEl.className = `calorie-status ${statusColor}`;
         caloriesValue.textContent = `${totals.calories} / ${macroGoals.calories} kcal`;
-        proteinValue.textContent = `${totals.protein} / ${macroGoals.protein} g`;
-        carbsValue.textContent = `${totals.carbs} / ${macroGoals.carbs} g`;
-        fatValue.textContent = `${totals.fat} / ${macroGoals.fat} g`;
+        proteinValue.textContent = `${Math.round(totals.protein * 10) / 10} / ${macroGoals.protein} g`;
+        carbsValue.textContent = `${Math.round(totals.carbs * 10) / 10} / ${macroGoals.carbs} g`;
+        fatValue.textContent = `${Math.round(totals.fat * 10) / 10} / ${macroGoals.fat} g`;
         caloriesBar.style.width = `${percent}%`;
         proteinBar.style.width = `${macroGoals.protein > 0 ? Math.min(100, Math.round((totals.protein / macroGoals.protein) * 100)) : 0}%`;
         carbsBar.style.width = `${macroGoals.carbs > 0 ? Math.min(100, Math.round((totals.carbs / macroGoals.carbs) * 100)) : 0}%`;
@@ -766,26 +857,68 @@
           return;
         }
 
-        selectedDay.scannedItems.forEach((item) => {
+        selectedDay.scannedItems.forEach((item, idx) => {
           const entry = document.createElement("div");
           entry.className = "scanned-item";
+          const gramm = item.gramm || 100;
+          const factor = gramm / 100;
+          const calcCalories = Math.round(item.calories * factor);
+          const calcProtein = Math.round(item.protein * factor * 10) / 10;
+          const calcCarbs = Math.round(item.carbs * factor * 10) / 10;
+          const calcFat = Math.round(item.fat * factor * 10) / 10;
+
           entry.innerHTML = `
             <strong>${item.name}</strong>
-            <span>Barcode: ${item.barcode}</span>
-            <span>Kalorien: ${item.calories} kcal · Protein: ${item.protein} g · KH: ${item.carbs} g · Fett: ${item.fat} g</span>
+            <span>Barcode: ${item.barcode} · ${gramm}g</span>
+            <span>Kalorien: ${calcCalories} kcal · Protein: ${calcProtein}g · KH: ${calcCarbs}g · Fett: ${calcFat}g</span>
+            <div class="scanned-item-controls">
+              <input type="number" min="10" max="1000" step="10" value="${gramm}" class="portion-input" data-index="${idx}" placeholder="Gramm" />
+              <button type="button" class="btn btn-secondary" data-index="${idx}" style="padding: 8px 12px;">Aktualisieren</button>
+              <button type="button" class="btn btn-secondary" data-delete="${idx}" style="padding: 8px 12px; color: #dc2626;">Löschen</button>
+            </div>
           `;
           scannedListEl.appendChild(entry);
+        });
+
+        document.querySelectorAll(".scanned-item-controls button[data-index]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = parseInt(btn.dataset.index);
+            const input = document.querySelector(`.portion-input[data-index="${idx}"]`);
+            const newGramm = parseInt(input.value) || 100;
+            getSelectedDay().scannedItems[idx].gramm = newGramm;
+            updateDayTabs();
+            updateMacroCard();
+            renderScannedItems();
+          });
+        });
+
+        document.querySelectorAll(".scanned-item-controls button[data-delete]").forEach((btn) => {
+          btn.addEventListener("click", () => {
+            const idx = parseInt(btn.dataset.delete);
+            const selectedDay = getSelectedDay();
+            const item = selectedDay.scannedItems[idx];
+            selectedDay.totals.calories -= Math.round(item.calories * ((item.gramm || 100) / 100));
+            selectedDay.totals.protein -= item.protein * ((item.gramm || 100) / 100);
+            selectedDay.totals.carbs -= item.carbs * ((item.gramm || 100) / 100);
+            selectedDay.totals.fat -= item.fat * ((item.gramm || 100) / 100);
+            selectedDay.scannedItems.splice(idx, 1);
+            updateDayTabs();
+            updateMacroCard();
+            renderScannedItems();
+          });
         });
       }
 
       function addScannedProduct(barcode, product) {
         const selectedDay = getSelectedDay();
-        selectedDay.scannedItems.push({ barcode, ...product });
-        selectedDay.totals.calories += product.calories;
-        selectedDay.totals.protein += product.protein;
-        selectedDay.totals.carbs += product.carbs;
-        selectedDay.totals.fat += product.fat;
-        macroNote.textContent = `${product.name} wurde hinzugefügt.`;
+        const gramm = 100;
+        selectedDay.scannedItems.push({ barcode, gramm, ...product });
+        const factor = gramm / 100;
+        selectedDay.totals.calories += Math.round(product.calories * factor);
+        selectedDay.totals.protein += product.protein * factor;
+        selectedDay.totals.carbs += product.carbs * factor;
+        selectedDay.totals.fat += product.fat * factor;
+        macroNote.textContent = `${product.name} (${gramm}g) wurde hinzugefügt.`;
         updateDayTabs();
         updateMacroCard();
         renderScannedItems();
@@ -933,6 +1066,63 @@
         updateMacroCard();
         macroNote.textContent = `Verbrannt: ${burned} kcal für ${selectedDayLabel.textContent}.`;
       });
+
+      photoCaptureBtn.addEventListener("click", () => {
+        nutritionPhotoInput.click();
+      });
+
+      nutritionPhotoInput.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          nutritionPhotoPreview.src = e.target.result;
+          nutritionPhotoPreview.style.display = "block";
+          photoCaptureResult.innerHTML = `
+            <div style="display: grid; gap: 10px;">
+              <label style="color: var(--text-muted); font-size: 0.9rem;">Nährwerte von Foto (je 100g)</label>
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                  <label style="color: var(--text-muted); font-size: 0.85rem;">Kalorien (kcal)</label>
+                  <input type="number" id="photo-calories" step="1" placeholder="z.B. 100" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.9); color: var(--text-main);" />
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 0.85rem;">Protein (g)</label>
+                  <input type="number" id="photo-protein" step="0.1" placeholder="z.B. 10" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.9); color: var(--text-main);" />
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 0.85rem;">Kohlenhydrate (g)</label>
+                  <input type="number" id="photo-carbs" step="0.1" placeholder="z.B. 20" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.9); color: var(--text-main);" />
+                </div>
+                <div>
+                  <label style="color: var(--text-muted); font-size: 0.85rem;">Fett (g)</label>
+                  <input type="number" id="photo-fat" step="0.1" placeholder="z.B. 5" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.9); color: var(--text-main);" />
+                </div>
+              </div>
+              <input type="text" id="photo-name" placeholder="Produktname" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.9); color: var(--text-main);" />
+              <button type="button" class="btn btn-primary" id="photo-submit" style="width: 100%;">Nährwerte hinzufügen</button>\n            </div>
+          `;\n          document.getElementById("photo-submit").addEventListener("click", () => {
+            const name = document.getElementById("photo-name").value || "Produkt vom Foto";
+            const calories = Math.round(Number(document.getElementById("photo-calories").value) || 0);
+            const protein = Number(document.getElementById("photo-protein").value) || 0;
+            const carbs = Number(document.getElementById("photo-carbs").value) || 0;
+            const fat = Number(document.getElementById("photo-fat").value) || 0;
+
+            if (calories === 0 || !name) {
+              macroNote.textContent = "Bitte zumindest Kalorien und einen Namen eingeben.";
+              return;
+            }
+
+            addScannedProduct("PHOTO_" + Date.now(), { name, calories, protein, carbs, fat });
+            photoCaptureResult.innerHTML = "";
+            nutritionPhotoPreview.style.display = "none";
+            nutritionPhotoInput.value = "";
+          });
+        };
+        reader.readAsDataURL(file);
+      });
+
 
       calculateDerivedGoals();
       updateGoalOutputs();
