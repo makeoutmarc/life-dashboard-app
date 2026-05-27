@@ -3,296 +3,1035 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Life Dashboard App</title>
+    <title>Life Dashboard</title>
     <style>
-      :root {
-        color-scheme: light;
-        --bg: #f4f6f8;
-        --panel: #ffffff;
-        --text: #17202a;
-        --muted: #64748b;
-        --line: #d9e2ec;
-        --green: #1f9d55;
-        --blue: #2563eb;
-        --amber: #d97706;
-        --red: #dc2626;
-      }
-
       * {
         box-sizing: border-box;
       }
 
-      body {
-        margin: 0;
-        min-height: 100vh;
-        background: var(--bg);
-        color: var(--text);
-        font-family:
-          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
-          "Segoe UI", sans-serif;
+      :root {
+        color-scheme: dark;
+        --page-bg: #060708;
+        --surface: #11171f;
+        --surface-muted: #161d27;
+        --text-main: #f8fafc;
+        --text-muted: #94a3b8;
+        --accent: #38bdf8;
+        --accent-strong: #22d3ee;
+        --border: rgba(148, 163, 184, 0.16);
+        --shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
       }
 
-      main {
-        width: min(1120px, calc(100% - 32px));
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, rgba(56, 189, 248, 0.08), transparent 28%),
+          linear-gradient(180deg, #020408 0%, #08101a 100%);
+        color: var(--text-main);
+      }
+
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: linear-gradient(135deg, rgba(56, 189, 248, 0.08), transparent 35%),
+          linear-gradient(225deg, rgba(59, 130, 246, 0.05), transparent 40%);
+        pointer-events: none;
+      }
+
+      #app {
+        position: relative;
+        max-width: 1080px;
         margin: 0 auto;
-        padding: 28px 0 40px;
+        padding: 32px 20px 56px;
       }
 
       header {
         display: flex;
-        align-items: flex-end;
+        flex-wrap: wrap;
         justify-content: space-between;
         gap: 16px;
-        margin-bottom: 22px;
+        align-items: center;
+        margin-bottom: 32px;
       }
 
-      h1,
-      h2,
-      p {
-        margin: 0;
-      }
-
-      h1 {
-        font-size: 32px;
-        line-height: 1.15;
-      }
-
-      .date {
-        color: var(--muted);
-        font-size: 15px;
-        margin-top: 6px;
-      }
-
-      .score {
-        min-width: 180px;
-        padding: 14px 16px;
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-        text-align: right;
-      }
-
-      .score strong {
-        display: block;
-        color: var(--green);
-        font-size: 34px;
-        line-height: 1;
-      }
-
-      .score span {
-        color: var(--muted);
-        font-size: 13px;
-      }
-
-      .grid {
-        display: grid;
-        grid-template-columns: 1.4fr 1fr;
-        gap: 16px;
-      }
-
-      section,
-      .metric {
-        border: 1px solid var(--line);
-        border-radius: 8px;
-        background: var(--panel);
-      }
-
-      section {
-        padding: 18px;
-      }
-
-      h2 {
-        font-size: 18px;
-        line-height: 1.2;
-        margin-bottom: 16px;
-      }
-
-      .metrics {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 12px;
-      }
-
-      .metric {
-        padding: 14px;
-      }
-
-      .metric label {
-        display: block;
-        color: var(--muted);
-        font-size: 13px;
-        margin-bottom: 8px;
-      }
-
-      .metric strong {
-        display: block;
-        font-size: 24px;
-      }
-
-      .progress {
-        height: 10px;
-        overflow: hidden;
-        border-radius: 999px;
-        background: #e7edf3;
-        margin-top: 12px;
-      }
-
-      .progress > div {
-        height: 100%;
-        border-radius: inherit;
-        background: var(--blue);
-      }
-
-      .habits {
+      .brand {
         display: grid;
         gap: 10px;
       }
 
-      .habit {
+      .brand h1 {
+        margin: 0;
+        font-size: clamp(2rem, 3vw, 3rem);
+        letter-spacing: -0.05em;
+      }
+
+      .brand p {
+        margin: 0;
+        color: var(--text-muted);
+      }
+
+      .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 0.9rem 1.1rem;
+        border-radius: 999px;
+        background: rgba(56, 189, 248, 0.1);
+        color: var(--accent-strong);
+        border: 1px solid rgba(56, 189, 248, 0.2);
+        font-weight: 600;
+      }
+
+      .grid {
+        display: grid;
+        gap: 24px;
+      }
+
+      .grid-2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .card {
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid var(--border);
+        border-radius: 28px;
+        box-shadow: var(--shadow);
+        padding: 24px;
+      }
+
+      .card h2 {
+        margin: 0 0 18px;
+        font-size: 1.25rem;
+      }
+
+      .card p {
+        color: var(--text-muted);
+        margin: 0;
+        line-height: 1.7;
+      }
+
+      .summary-list {
+        display: grid;
+        gap: 12px;
+        margin-top: 22px;
+      }
+
+      .summary-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.04);
+      }
+
+      .summary-label {
+        color: var(--text-muted);
+      }
+
+      .summary-value {
+        font-weight: 700;
+      }
+
+      .todo-form,
+      .macro-card,
+      .gym-actions {
+        display: grid;
+        gap: 16px;
+      }
+
+      .day-tabs {
+        display: grid;
+        grid-template-columns: repeat(7, minmax(0, 1fr));
+        gap: 10px;
+        margin-bottom: 18px;
+      }
+
+      .day-pill {
+        position: relative;
+        display: inline-flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 12px 10px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        color: var(--text-main);
+        cursor: pointer;
+      }
+
+      .day-pill.selected {
+        background: linear-gradient(180deg, rgba(56, 189, 248, 0.18), rgba(15, 23, 42, 0.9));
+        border-color: rgba(56, 189, 248, 0.4);
+      }
+
+      .day-pill span {
+        font-size: 0.95rem;
+        line-height: 1.2;
+      }
+
+      .day-progress {
+        width: 100%;
+        height: 5px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
+      }
+
+      .day-progress-inner {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+      }
+
+      .target-grid {
+        display: grid;
+        gap: 14px;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .target-field {
+        display: grid;
+        gap: 8px;
+      }
+
+      .target-field label,
+      .burn-row label {
+        color: var(--text-muted);
+        font-size: 0.9rem;
+      }
+
+      .target-field input,
+      .target-field output,
+      .burn-row input {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+      }
+
+      .target-field output {
+        display: block;
+        min-height: 47px;
+        line-height: 1.6;
+      }
+
+      .burn-row {
+        display: grid;
+        gap: 12px;
+      }
+
+      .burn-row button,
+      .target-row button {
+        width: fit-content;
+      }
+
+      .day-overview {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+        flex-wrap: wrap;
+      }
+
+      .day-overview strong {
+        font-size: 0.95rem;
+      }
+
+      .scanner-controls {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .scanner-preview {
+        display: grid;
+        gap: 12px;
+        padding: 16px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid rgba(255, 255, 255, 0.06);
+      }
+
+      #barcode-video {
+        width: 100%;
+        aspect-ratio: 16 / 9;
+        border-radius: 16px;
+        background: #000;
+        object-fit: cover;
+      }
+
+      .scanner-status {
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      .scanned-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .scanned-item {
+        display: grid;
+        gap: 8px;
+        padding: 14px;
+        border-radius: 16px;
+        background: rgba(15, 23, 42, 0.9);
+        border: 1px solid rgba(148, 163, 184, 0.1);
+      }
+
+      .scanned-item strong {
+        display: block;
+        color: var(--text-main);
+      }
+
+      .todo-input {
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--border);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+      }
+
+      .btn {
+        padding: 14px 18px;
+        border: none;
+        border-radius: 14px;
+        cursor: pointer;
+        font-weight: 700;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        color: #0f172a;
+        box-shadow: 0 18px 30px rgba(56, 189, 248, 0.2);
+      }
+
+      .btn-secondary {
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--text-main);
+        border: 1px solid rgba(148, 163, 184, 0.16);
+      }
+
+      .todo-list {
+        display: grid;
+        gap: 12px;
+      }
+
+      .todo-item {
         display: flex;
         align-items: center;
         justify-content: space-between;
         gap: 12px;
-        padding: 12px 0;
-        border-bottom: 1px solid var(--line);
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.06);
       }
 
-      .habit:last-child {
-        border-bottom: 0;
+      .todo-item label {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        color: var(--text-main);
       }
 
-      .habit span {
-        color: var(--muted);
-        font-size: 14px;
+      .todo-item input[type="checkbox"] {
+        appearance: none;
+        width: 18px;
+        height: 18px;
+        border-radius: 6px;
+        border: 1px solid rgba(148, 163, 184, 0.3);
+        background: transparent;
+        display: grid;
+        place-items: center;
       }
 
-      .pill {
-        min-width: 72px;
+      .todo-item input[type="checkbox"]:checked {
+        background: linear-gradient(135deg, #38bdf8, #0ea5e9);
+        border-color: transparent;
+      }
+
+      .todo-item input[type="checkbox"]:checked::after {
+        content: "✓";
+        color: #0f172a;
+        font-size: 0.85rem;
+      }
+
+      .todo-item .delete {
+        background: none;
+        border: none;
+        color: var(--text-muted);
+        cursor: pointer;
+        font-size: 1rem;
+      }
+
+      .progress-group {
+        display: grid;
+        gap: 14px;
+      }
+
+      .progress-row {
+        display: grid;
+        gap: 8px;
+      }
+
+      .progress-row span {
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-muted);
+        font-size: 0.95rem;
+      }
+
+      .progress-bar {
+        width: 100%;
+        height: 12px;
         border-radius: 999px;
-        padding: 6px 10px;
-        color: #ffffff;
-        font-size: 13px;
-        font-weight: 700;
-        text-align: center;
+        background: rgba(255, 255, 255, 0.08);
+        overflow: hidden;
       }
 
-      .done {
-        background: var(--green);
+      .progress-bar span {
+        display: block;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #38bdf8, #0ea5e9);
       }
 
-      .open {
-        background: var(--amber);
+      .gym-actions {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
-      .missed {
-        background: var(--red);
+      .gym-actions .btn {
+        width: 100%;
+      }
+
+      .footer-note {
+        margin-top: 8px;
+        font-size: 0.95rem;
+        color: var(--text-muted);
       }
 
       @media (max-width: 760px) {
-        main {
-          width: min(100% - 24px, 520px);
-          padding-top: 18px;
-        }
-
-        header,
-        .grid {
-          display: grid;
+        .grid-2 {
           grid-template-columns: 1fr;
         }
 
-        .score {
-          text-align: left;
-        }
-
-        .metrics {
+        .gym-actions {
           grid-template-columns: 1fr;
         }
       }
     </style>
   </head>
   <body>
-    <main>
+    <main id="app">
       <header>
-        <div>
-          <h1>Life Dashboard</h1>
-          <p class="date">MVP Preview fuer dein persoenliches iPhone-System</p>
+        <div class="brand">
+          <div>
+            <h1>Life Dashboard</h1>
+            <p>Dein zentraler Überblick für Fitness, Ernährung und Fokus.</p>
+          </div>
+          <div class="footer-note">MVP-Status: lokal, mobil-freundlich, erweiterbar.</div>
         </div>
-        <div class="score">
-          <strong>72%</strong>
-          <span>Disziplin-Score diese Woche</span>
-        </div>
+        <div class="status-pill">Heute: Fokus auf Gewohnheiten</div>
       </header>
 
-      <div class="grid">
-        <section>
-          <h2>Heute</h2>
-          <div class="metrics">
-            <div class="metric">
-              <label>Kalorien</label>
-              <strong>1.840 / 2.300</strong>
-              <div class="progress" aria-label="Kalorien Fortschritt">
-                <div style="width: 80%"></div>
-              </div>
+      <div class="grid grid-2">
+        <section class="card">
+          <h2>Tagesübersicht</h2>
+          <div class="summary-list">
+            <div class="summary-item">
+              <span class="summary-label">To-Dos</span>
+              <span class="summary-value" id="todo-count">3</span>
             </div>
-            <div class="metric">
-              <label>Protein</label>
-              <strong>142g / 180g</strong>
-              <div class="progress" aria-label="Protein Fortschritt">
-                <div style="width: 79%"></div>
-              </div>
+            <div class="summary-item">
+              <span class="summary-label">Makro-Ziel</span>
+              <span class="summary-value" id="macro-status">58 %</span>
             </div>
-            <div class="metric">
-              <label>Schritte</label>
-              <strong>7.400 / 10.000</strong>
-              <div class="progress" aria-label="Schritte Fortschritt">
-                <div style="width: 74%"></div>
-              </div>
-            </div>
-            <div class="metric">
-              <label>Gym</label>
-              <strong>Push Day</strong>
-              <div class="progress" aria-label="Gym Fortschritt">
-                <div style="width: 100%"></div>
-              </div>
+            <div class="summary-item">
+              <span class="summary-label">Gym-Check-ins</span>
+              <span class="summary-value" id="gym-count">1 / 3</span>
             </div>
           </div>
         </section>
 
-        <section>
-          <h2>Tagesziele</h2>
-          <div class="habits">
-            <div class="habit">
-              <div>
-                <strong>Gym erledigt</strong>
-                <span>Training fuer heute abgehakt</span>
+        <section class="card">
+          <h2>Briefing</h2>
+          <p>Hier kannst du deine Tagesschwerpunkte setzen, Trainingsfortschritt verfolgen und deine wichtigsten Daten schnell einsehen.</p>
+        </section>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 24px;">
+        <section class="card">
+          <h2>To-Do Liste</h2>
+          <form class="todo-form" id="todo-form">
+            <input class="todo-input" id="todo-input" type="text" placeholder="Neue Aufgabe hinzufügen" autocomplete="off" />
+            <button type="submit" class="btn btn-primary">Aufgabe hinzufügen</button>
+          </form>
+          <div class="todo-list" id="todo-list"></div>
+        </section>
+
+        <section class="card">
+          <h2>Makrotracking</h2>
+          <div class="macro-card">
+            <div class="day-overview">
+              <div class="day-summary">
+                <div class="day-tabs" id="day-tabs"></div>
+                <div class="footer-note"><strong id="selected-day-label">Heute</strong> anzeigen</div>
               </div>
-              <div class="pill done">Ja</div>
+              <div class="target-row">
+                <form id="target-form" class="target-grid">
+                  <div class="target-field">
+                    <label for="calorie-target">Tages-Kalorienziel</label>
+                    <input id="calorie-target" type="number" min="1000" step="50" value="2400" />
+                  </div>
+                  <div class="target-field">
+                    <label for="protein-target">Tages-Proteinziel</label>
+                    <input id="protein-target" type="number" min="50" step="5" value="140" />
+                  </div>
+                  <div class="target-field">
+                    <label>Kohlenhydrate Ziel</label>
+                    <output id="carbs-target">260 g</output>
+                  </div>
+                  <div class="target-field">
+                    <label>Fett Ziel</label>
+                    <output id="fat-target">80 g</output>
+                  </div>
+                  <button type="submit" class="btn btn-primary">Ziele speichern</button>
+                </form>
+              </div>
             </div>
-            <div class="habit">
-              <div>
-                <strong>Kalorien im Ziel</strong>
-                <span>Noch im geplanten Bereich</span>
+
+            <div class="burn-row">
+              <label for="burned-calories">Kalorien verbrannt</label>
+              <div style="display: flex; gap: 12px; flex-wrap: wrap; align-items: center;">
+                <input id="burned-calories" type="number" min="0" step="10" placeholder="z. B. 500" />
+                <button type="button" class="btn btn-secondary" id="save-burn">Speichern</button>
               </div>
-              <div class="pill done">Ja</div>
+              <div class="footer-note" id="burn-note">Gib am Ende des Tages oder direkt am nächsten Tag ein, wie viel du verbrannt hast.</div>
             </div>
-            <div class="habit">
-              <div>
-                <strong>Protein erreicht</strong>
-                <span>38g fehlen noch</span>
+
+            <div class="progress-group" id="macro-progress">
+              <div class="progress-row">
+                <span><strong>Kalorien</strong><strong id="calories-value">0 / 2.400 kcal</strong></span>
+                <div class="progress-bar"><span id="calories-bar" style="width: 0%"></span></div>
               </div>
-              <div class="pill open">Offen</div>
+              <div class="progress-row">
+                <span><strong>Protein</strong><strong id="protein-value">0 / 140 g</strong></span>
+                <div class="progress-bar"><span id="protein-bar" style="width: 0%"></span></div>
+              </div>
+              <div class="progress-row">
+                <span><strong>Kohlenhydrate</strong><strong id="carbs-value">0 / 260 g</strong></span>
+                <div class="progress-bar"><span id="carbs-bar" style="width: 0%"></span></div>
+              </div>
+              <div class="progress-row">
+                <span><strong>Fett</strong><strong id="fat-value">0 / 80 g</strong></span>
+                <div class="progress-bar"><span id="fat-bar" style="width: 0%"></span></div>
+              </div>
             </div>
-            <div class="habit">
-              <div>
-                <strong>Schlaf getrackt</strong>
-                <span>Kommt spaeter ins MVP</span>
+
+            <div class="scanner-controls">
+              <button type="button" class="btn btn-primary" id="scan-start">Barcode scannen</button>
+              <button type="button" class="btn btn-secondary" id="scan-stop" disabled>Stoppen</button>
+            </div>
+            <div class="scanner-preview" id="scanner-preview">
+              <video id="barcode-video" playsinline muted></video>
+              <div class="scanner-status" id="scanner-status">Kamera nicht gestartet</div>
+            </div>
+
+            <div class="scanner-fallback">
+              <label for="barcode-input">Barcode manuell eingeben</label>
+              <div style="display: grid; gap: 12px;">
+                <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+                  <input id="barcode-input" class="todo-input" type="text" placeholder="EAN / UPC" />
+                  <button type="button" class="btn btn-secondary" id="barcode-lookup">Lookup</button>
+                </div>
               </div>
-              <div class="pill missed">Nein</div>
+            </div>
+
+            <div class="scanned-list" id="scanned-list"></div>
+            <p class="footer-note" id="macro-note">Scanne ein Produkt, um die Makros automatisch zu laden.</p>
+          </div>
+        </section>
+      </div>
+
+      <div class="grid grid-2" style="margin-top: 24px;">
+        <section class="card">
+          <h2>Gym Check-in</h2>
+          <p>Markiere dein Training als erledigt oder plane den nächsten Termin.</p>
+          <div class="gym-actions">
+            <button class="btn btn-primary" id="gym-checkin">Training eintragen</button>
+            <button class="btn btn-secondary" id="gym-reset">Woche zurücksetzen</button>
+          </div>
+          <p class="footer-note">Aktuelle Woche: 1 von 3 Einheiten abgeschlossen.</p>
+        </section>
+
+        <section class="card">
+          <h2>Aktien &amp; Finanzen</h2>
+          <p>Später hier: Watchlist, Depotübersicht und Rendite-Schätzungen.</p>
+          <div class="summary-list">
+            <div class="summary-item">
+              <span class="summary-label">Watchlist</span>
+              <span class="summary-value">3 Symbole</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Gewinnziel</span>
+              <span class="summary-value">+7,5 %</span>
             </div>
           </div>
         </section>
       </div>
     </main>
+
+    <script>
+      const todos = [
+        { id: 1, text: "Morgendliche Routine", done: false },
+        { id: 2, text: "Protein-Shake vorbereiten", done: true },
+        { id: 3, text: "30 Min Lauf", done: false }
+      ];
+      let gymCount = 1;
+
+      const todoCountEl = document.getElementById("todo-count");
+      const gymCountEl = document.getElementById("gym-count");
+      const todoListEl = document.getElementById("todo-list");
+      const todoForm = document.getElementById("todo-form");
+      const todoInput = document.getElementById("todo-input");
+      const gymCheckinBtn = document.getElementById("gym-checkin");
+      const gymResetBtn = document.getElementById("gym-reset");
+
+      const scanStartBtn = document.getElementById("scan-start");
+      const scanStopBtn = document.getElementById("scan-stop");
+      const barcodeVideo = document.getElementById("barcode-video");
+      const scannerStatus = document.getElementById("scanner-status");
+      const barcodeInput = document.getElementById("barcode-input");
+      const barcodeLookup = document.getElementById("barcode-lookup");
+      const scannedListEl = document.getElementById("scanned-list");
+      const macroNote = document.getElementById("macro-note");
+      const macroStatusEl = document.getElementById("macro-status");
+      const caloriesValue = document.getElementById("calories-value");
+      const proteinValue = document.getElementById("protein-value");
+      const carbsValue = document.getElementById("carbs-value");
+      const fatValue = document.getElementById("fat-value");
+      const caloriesBar = document.getElementById("calories-bar");
+      const proteinBar = document.getElementById("protein-bar");
+      const carbsBar = document.getElementById("carbs-bar");
+      const fatBar = document.getElementById("fat-bar");
+
+      const dayNames = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+      const days = dayNames.map((label) => ({
+        label,
+        burned: 0,
+        scannedItems: [],
+        totals: { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      }));
+      let selectedDayIndex = 0;
+
+      const dayTabs = document.getElementById("day-tabs");
+      const selectedDayLabel = document.getElementById("selected-day-label");
+      const calorieTargetInput = document.getElementById("calorie-target");
+      const proteinTargetInput = document.getElementById("protein-target");
+      const carbsTargetEl = document.getElementById("carbs-target");
+      const fatTargetEl = document.getElementById("fat-target");
+      const burnedCaloriesInput = document.getElementById("burned-calories");
+      const saveBurnBtn = document.getElementById("save-burn");
+      const targetForm = document.getElementById("target-form");
+
+      const macroGoals = {
+        calories: Number(calorieTargetInput.value),
+        protein: Number(proteinTargetInput.value),
+        carbs: 0,
+        fat: 0
+      };
+
+      const productDatabase = {
+        "4006381333931": {
+          name: "Proteinriegel",
+          calories: 220,
+          protein: 18,
+          carbs: 22,
+          fat: 9
+        },
+        "8712100903975": {
+          name: "Joghurt 0% Fett",
+          calories: 100,
+          protein: 10,
+          carbs: 12,
+          fat: 0
+        },
+        "4260403570891": {
+          name: "Haferflocken 100g",
+          calories: 389,
+          protein: 13,
+          carbs: 66,
+          fat: 7
+        },
+        "5410123456789": {
+          name: "Hähnchenbrust 150g",
+          calories: 248,
+          protein: 46,
+          carbs: 0,
+          fat: 6
+        }
+      };
+
+      let videoStream = null;
+      let scanning = false;
+      let barcodeDetector = null;
+      let scanCanvas = null;
+      let scanContext = null;
+
+      function calculateDerivedGoals() {
+        const proteinCalories = macroGoals.protein * 4;
+        const remainingCalories = Math.max(0, macroGoals.calories - proteinCalories);
+        macroGoals.carbs = Math.round((remainingCalories * 0.60) / 4);
+        macroGoals.fat = Math.round((remainingCalories * 0.40) / 9);
+      }
+
+      function updateGoalOutputs() {
+        carbsTargetEl.textContent = `${macroGoals.carbs} g`;
+        fatTargetEl.textContent = `${macroGoals.fat} g`;
+      }
+
+      function getSelectedDay() {
+        return days[selectedDayIndex];
+      }
+
+      function updateDayTabs() {
+        dayTabs.innerHTML = "";
+        days.forEach((day, index) => {
+          const pill = document.createElement("button");
+          pill.type = "button";
+          pill.className = `day-pill${index === selectedDayIndex ? " selected" : ""}`;
+          const consumedPercent = macroGoals.calories > 0 ? Math.min(100, Math.round((day.totals.calories / macroGoals.calories) * 100)) : 0;
+          pill.innerHTML = `
+            <span>${day.label}</span>
+            <div class="day-progress"><span class="day-progress-inner" style="width: ${consumedPercent}%"></span></div>
+          `;
+          pill.addEventListener("click", () => selectDay(index));
+          dayTabs.appendChild(pill);
+        });
+      }
+
+      function selectDay(index) {
+        selectedDayIndex = index;
+        selectedDayLabel.textContent = index === 0 ? "Heute" : days[index].label;
+        burnedCaloriesInput.value = getSelectedDay().burned || "";
+        updateDayTabs();
+        updateMacroCard();
+        renderScannedItems();
+      }
+
+      function updateMacroCard() {
+        const totals = getSelectedDay().totals;
+        const percent = macroGoals.calories > 0 ? Math.min(100, Math.round((totals.calories / macroGoals.calories) * 100)) : 0;
+        macroStatusEl.textContent = `${percent} %`;
+        caloriesValue.textContent = `${totals.calories} / ${macroGoals.calories} kcal`;
+        proteinValue.textContent = `${totals.protein} / ${macroGoals.protein} g`;
+        carbsValue.textContent = `${totals.carbs} / ${macroGoals.carbs} g`;
+        fatValue.textContent = `${totals.fat} / ${macroGoals.fat} g`;
+        caloriesBar.style.width = `${percent}%`;
+        proteinBar.style.width = `${macroGoals.protein > 0 ? Math.min(100, Math.round((totals.protein / macroGoals.protein) * 100)) : 0}%`;
+        carbsBar.style.width = `${macroGoals.carbs > 0 ? Math.min(100, Math.round((totals.carbs / macroGoals.carbs) * 100)) : 0}%`;
+        fatBar.style.width = `${macroGoals.fat > 0 ? Math.min(100, Math.round((totals.fat / macroGoals.fat) * 100)) : 0}%`;
+        const burned = getSelectedDay().burned || 0;
+        const net = Math.max(0, totals.calories - burned);
+        document.getElementById("burn-note").textContent = `Verbrannt: ${burned} kcal · Netto: ${net} kcal`;
+      }
+
+      function renderScannedItems() {
+        const selectedDay = getSelectedDay();
+        scannedListEl.innerHTML = "";
+        if (selectedDay.scannedItems.length === 0) {
+          scannedListEl.innerHTML = "<div class='footer-note'>Keine gescannten Produkte für diesen Tag.</div>";
+          return;
+        }
+
+        selectedDay.scannedItems.forEach((item) => {
+          const entry = document.createElement("div");
+          entry.className = "scanned-item";
+          entry.innerHTML = `
+            <strong>${item.name}</strong>
+            <span>Barcode: ${item.barcode}</span>
+            <span>Kalorien: ${item.calories} kcal · Protein: ${item.protein} g · KH: ${item.carbs} g · Fett: ${item.fat} g</span>
+          `;
+          scannedListEl.appendChild(entry);
+        });
+      }
+
+      function addScannedProduct(barcode, product) {
+        const selectedDay = getSelectedDay();
+        selectedDay.scannedItems.push({ barcode, ...product });
+        selectedDay.totals.calories += product.calories;
+        selectedDay.totals.protein += product.protein;
+        selectedDay.totals.carbs += product.carbs;
+        selectedDay.totals.fat += product.fat;
+        macroNote.textContent = `${product.name} wurde hinzugefügt.`;
+        updateDayTabs();
+        updateMacroCard();
+        renderScannedItems();
+      }
+
+      async function fetchProductFromOpenFoodFacts(barcode) {
+        try {
+          const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
+          if (!response.ok) return null;
+          const data = await response.json();
+          if (data.status !== 1 || !data.product || !data.product.nutriments) return null;
+
+          const nutriments = data.product.nutriments;
+          const calories = nutriments["energy-kcal_100g"] ?? nutriments["energy-kcal_value"] ?? nutriments["energy_100g"];
+          const protein = nutriments["proteins_100g"] ?? nutriments["proteins_value"];
+          const carbs = nutriments["carbohydrates_100g"] ?? nutriments["carbohydrates_value"];
+          const fat = nutriments["fat_100g"] ?? nutriments["fat_value"];
+
+          if (calories == null || protein == null || carbs == null || fat == null) {
+            return null;
+          }
+
+          return {
+            name: data.product.product_name || data.product.generic_name || "Unbekanntes Produkt",
+            calories: Math.round(calories),
+            protein: Math.round(protein),
+            carbs: Math.round(carbs),
+            fat: Math.round(fat)
+          };
+        } catch (error) {
+          scannerStatus.textContent = `API-Fehler: ${error.message}`;
+          return null;
+        }
+      }
+
+      async function handleBarcodeResult(barcode) {
+        scannerStatus.textContent = `Produktdaten werden geladen für ${barcode} ...`;
+        let product = productDatabase[barcode];
+        if (!product) {
+          product = await fetchProductFromOpenFoodFacts(barcode);
+        }
+
+        if (product) {
+          addScannedProduct(barcode, product);
+          scannerStatus.textContent = `Produkt gefunden: ${product.name}`;
+        } else {
+          macroNote.textContent = `Barcode ${barcode} wurde nicht gefunden. Bitte manuell prüfen oder später erneut versuchen.`;
+          scannerStatus.textContent = "Kein Produkt gefunden.";
+        }
+      }
+
+      async function startScanner() {
+        if (!("BarcodeDetector" in window)) {
+          scannerStatus.textContent = "BarcodeDetector wird von diesem Browser nicht unterstützt.";
+          return;
+        }
+
+        try {
+          if (!barcodeDetector) {
+            barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_e", "upc_a", "code_128"] });
+          }
+
+          videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          barcodeVideo.srcObject = videoStream;
+          await barcodeVideo.play();
+
+          scanCanvas = document.createElement("canvas");
+          scanContext = scanCanvas.getContext("2d");
+          scanning = true;
+          scanStartBtn.disabled = true;
+          scanStopBtn.disabled = false;
+          scannerStatus.textContent = "Kamera läuft — stoppe die Suche oder halte den Barcode vor das Objektiv.";
+          requestAnimationFrame(scanLoop);
+        } catch (error) {
+          scannerStatus.textContent = `Kamera konnte nicht gestartet werden: ${error.message}`;
+        }
+      }
+
+      async function scanLoop() {
+        if (!scanning || !barcodeVideo.videoWidth || !barcodeVideo.videoHeight) {
+          requestAnimationFrame(scanLoop);
+          return;
+        }
+
+        scanCanvas.width = barcodeVideo.videoWidth;
+        scanCanvas.height = barcodeVideo.videoHeight;
+        scanContext.drawImage(barcodeVideo, 0, 0, scanCanvas.width, scanCanvas.height);
+
+        try {
+          const barcodes = await barcodeDetector.detect(scanCanvas);
+          if (barcodes.length > 0) {
+            const barcode = barcodes[0].rawValue;
+            await handleBarcodeResult(barcode);
+            stopScanner();
+            return;
+          }
+        } catch (error) {
+          scannerStatus.textContent = `Scan-Fehler: ${error.message}`;
+          stopScanner();
+          return;
+        }
+
+        requestAnimationFrame(scanLoop);
+      }
+
+      function stopScanner() {
+        scanning = false;
+        scanStartBtn.disabled = false;
+        scanStopBtn.disabled = true;
+        scannerStatus.textContent = "Scanner gestoppt.";
+        if (videoStream) {
+          videoStream.getTracks().forEach((track) => track.stop());
+          videoStream = null;
+        }
+        if (barcodeVideo.srcObject) {
+          barcodeVideo.srcObject = null;
+        }
+      }
+
+      scanStartBtn.addEventListener("click", startScanner);
+      scanStopBtn.addEventListener("click", stopScanner);
+
+      barcodeLookup.addEventListener("click", async () => {
+        const barcode = barcodeInput.value.trim();
+        if (!barcode) {
+          macroNote.textContent = "Bitte zuerst eine Barcode-Nummer eingeben.";
+          return;
+        }
+        await handleBarcodeResult(barcode);
+      });
+
+      targetForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+        macroGoals.calories = Number(calorieTargetInput.value);
+        macroGoals.protein = Number(proteinTargetInput.value);
+        calculateDerivedGoals();
+        updateGoalOutputs();
+        updateMacroCard();
+        updateDayTabs();
+      });
+
+      saveBurnBtn.addEventListener("click", () => {
+        const burned = Number(burnedCaloriesInput.value) || 0;
+        getSelectedDay().burned = burned;
+        updateMacroCard();
+        macroNote.textContent = `Verbrannt: ${burned} kcal für ${selectedDayLabel.textContent}.`;
+      });
+
+      calculateDerivedGoals();
+      updateGoalOutputs();
+      updateDayTabs();
+      selectDay(0);
+
+      function renderTodos() {
+        todoListEl.innerHTML = "";
+        todos.forEach((todo) => {
+          const item = document.createElement("div");
+          item.className = "todo-item";
+
+          const label = document.createElement("label");
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.checked = todo.done;
+          checkbox.addEventListener("change", () => {
+            todo.done = checkbox.checked;
+          });
+
+          const text = document.createElement("span");
+          text.textContent = todo.text;
+          if (todo.done) {
+            text.style.opacity = "0.65";
+            text.style.textDecoration = "line-through";
+          }
+
+          checkbox.addEventListener("change", () => {
+            if (todo.done) {
+              text.style.opacity = "0.65";
+              text.style.textDecoration = "line-through";
+            } else {
+              text.style.opacity = "1";
+              text.style.textDecoration = "none";
+            }
+          });
+
+          label.appendChild(checkbox);
+          label.appendChild(text);
+
+          const deleteButton = document.createElement("button");
+          deleteButton.className = "delete";
+          deleteButton.type = "button";
+          deleteButton.textContent = "✕";
+          deleteButton.addEventListener("click", () => {
+            const index = todos.findIndex((item) => item.id === todo.id);
+            if (index !== -1) {
+              todos.splice(index, 1);
+              updateSummary();
+              renderTodos();
+            }
+          });
+
+          item.appendChild(label);
+          item.appendChild(deleteButton);
+          todoListEl.appendChild(item);
+        });
+      }
+
+      function updateSummary() {
+        todoCountEl.textContent = todos.length.toString();
+        gymCountEl.textContent = `${gymCount} / 3`;
+      }
+
+      todoForm.addEventListener("submit", (event) => {
+        event.preventDefault();
+
+        const text = todoInput.value.trim();
+        if (!text) return;
+
+        todos.push({
+          id: Date.now(),
+          text,
+          done: false
+        });
+
+        todoInput.value = "";
+        updateSummary();
+        renderTodos();
+      });
+
+      gymCheckinBtn.addEventListener("click", () => {
+        if (gymCount < 3) {
+          gymCount += 1;
+          updateSummary();
+          gymCheckinBtn.textContent = "Einheit hinzugefügt";
+          setTimeout(() => (gymCheckinBtn.textContent = "Training eintragen"), 1200);
+        }
+      });
+
+      gymResetBtn.addEventListener("click", () => {
+        gymCount = 0;
+        updateSummary();
+      });
+
+      updateSummary();
+      renderTodos();
+      updateMacroCard();
+      renderScannedItems();
+    </script>
   </body>
 </html>
-
