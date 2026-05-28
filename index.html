@@ -953,6 +953,8 @@
       let scanCanvas = null;
       let scanContext = null;
       let scanRafId = null;
+      let lastScanTime = 0;
+      const SCAN_COOLDOWN_MS = 1400;
 
       function calculateDerivedGoals() {
         const proteinCalories = macroGoals.protein * 4;
@@ -1110,49 +1112,64 @@
         renderScannedItems();
       }
 
-      async function fetchProductFromOpenFoodFacts(barcode) {
-        try {
-          const response = await fetch(`https://world.openfoodfacts.org/api/v0/product/${barcode}.json`);
-          if (!response.ok) return null;
-          const data = await response.json();
-          if (data.status !== 1 || !data.product || !data.product.nutriments) return null;
+      async function fetchProductFromPublicDatabases(barcode) {
+        const sources = [
+          "https://world.openfoodfacts.org/api/v0/product/",
+          "https://world.openbeautyfacts.org/api/v0/product/",
+          "https://world.openpetfoodfacts.org/api/v0/product/",
+          "https://world.openproductsfacts.org/api/v0/product/"
+        ];
 
-          const nutriments = data.product.nutriments;
-          const calories = nutriments["energy-kcal_100g"] ?? nutriments["energy-kcal_value"] ?? nutriments["energy_100g"];
-          const protein = nutriments["proteins_100g"] ?? nutriments["proteins_value"];
-          const carbs = nutriments["carbohydrates_100g"] ?? nutriments["carbohydrates_value"];
-          const fat = nutriments["fat_100g"] ?? nutriments["fat_value"];
+        for (const baseUrl of sources) {
+          try {
+            const response = await fetch(`${baseUrl}${barcode}.json`, { cache: "no-store" });
+            if (!response.ok) continue;
+            const data = await response.json();
+            if (data.status !== 1 || !data.product) continue;
 
-          if (calories == null || protein == null || carbs == null || fat == null) {
-            return null;
+            const nutriments = data.product.nutriments || {};
+            const calories = nutriments["energy-kcal_100g"] ?? nutriments["energy-kcal_value"] ?? nutriments["energy_100g"];
+            const protein = nutriments["proteins_100g"] ?? nutriments["proteins_value"];
+            const carbs = nutriments["carbohydrates_100g"] ?? nutriments["carbohydrates_value"];
+            const fat = nutriments["fat_100g"] ?? nutriments["fat_value"];
+
+            if (calories == null || protein == null || carbs == null || fat == null) {
+              continue;
+            }
+
+            return {
+              name: data.product.product_name || data.product.generic_name || data.product.brands || "Unbekanntes Produkt",
+              calories: Math.round(Number(calories)),
+              protein: Math.round(Number(protein) * 10) / 10,
+              carbs: Math.round(Number(carbs) * 10) / 10,
+              fat: Math.round(Number(fat) * 10) / 10
+            };
+          } catch (error) {
+            continue;
           }
-
-          return {
-            name: data.product.product_name || data.product.generic_name || "Unbekanntes Produkt",
-            calories: Math.round(calories),
-            protein: Math.round(protein),
-            carbs: Math.round(carbs),
-            fat: Math.round(fat)
-          };
-        } catch (error) {
-          scannerStatus.textContent = `API-Fehler: ${error.message}`;
-          return null;
         }
+
+        return null;
       }
 
       async function handleBarcodeResult(barcode) {
-        scannerStatus.textContent = `Produktdaten werden geladen für ${barcode} ...`;
-        let product = productDatabase[barcode];
+        const cleanBarcode = String(barcode || "").trim();
+        if (!cleanBarcode) return;
+
+        scannerStatus.textContent = `Barcode erkannt: ${cleanBarcode} · Produktdaten werden geladen…`;
+        let product = productDatabase[cleanBarcode];
         if (!product) {
-          product = await fetchProductFromOpenFoodFacts(barcode);
+          product = await fetchProductFromPublicDatabases(cleanBarcode);
         }
 
         if (product) {
-          addScannedProduct(barcode, product);
-          scannerStatus.textContent = `Produkt gefunden: ${product.name}`;
+          addScannedProduct(cleanBarcode, product);
+          scannerStatus.textContent = `Produkt hinzugefügt: ${product.name} · du kannst die Grammzahl unten direkt anpassen.`;
+          macroNote.textContent = `${product.name} wurde automatisch in die Tagesliste übernommen.`;
+          lastScanTime = performance.now();
         } else {
-          macroNote.textContent = `Barcode ${barcode} wurde nicht gefunden. Bitte manuell prüfen oder später erneut versuchen.`;
-          scannerStatus.textContent = "Kein Produkt gefunden.";
+          macroNote.textContent = `Barcode ${cleanBarcode} wurde nicht gefunden. Bitte manuell prüfen oder später erneut versuchen.`;
+          scannerStatus.textContent = "Kein Produkt gefunden. Du kannst den Barcode auch manuell eintragen.";
         }
       }
 
@@ -1194,8 +1211,9 @@
           }
 
           scanning = true;
-          scannerStatus.textContent = "Kamera läuft — halte den Barcode vor das Objektiv oder stoppe die Suche.";
-          requestAnimationFrame(scanLoop);
+          lastScanTime = 0;
+          scannerStatus.textContent = "Scanner läuft automatisch — halte die Kamera auf den Barcode und die Produkte werden direkt übernommen.";
+          scanRafId = requestAnimationFrame(scanLoop);
         } catch (error) {
           scannerStatus.textContent = `Kamera konnte nicht gestartet werden: ${error.message}`;
         }
@@ -1213,18 +1231,22 @@
         try {
           const barcodes = await barcodeDetector.detect(scanCanvas);
           if (barcodes.length > 0) {
-            const barcode = barcodes[0].rawValue;
-            await handleBarcodeResult(barcode);
-            stopScanner();
-            return;
+            const now = performance.now();
+            const barcode = String(barcodes[0].rawValue || "").trim();
+            if (barcode && now - lastScanTime > SCAN_COOLDOWN_MS) {
+              lastScanTime = now;
+              await handleBarcodeResult(barcode);
+            }
           }
         } catch (error) {
           scannerStatus.textContent = `Scan-Fehler: ${error.message}`;
-          stopScanner();
+          stopScanner(true);
           return;
         }
 
-        scanRafId = requestAnimationFrame(scanLoop);
+        if (scanning) {
+          scanRafId = requestAnimationFrame(scanLoop);
+        }
       }
 
       function stopScanner(showStatus = true) {
