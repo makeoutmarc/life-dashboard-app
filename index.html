@@ -200,6 +200,48 @@
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
 
+      .goal-setup-card {
+        display: grid;
+        gap: 14px;
+        width: 100%;
+      }
+
+      .goal-setup-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        flex-wrap: wrap;
+      }
+
+      .goal-editor-panel {
+        display: grid;
+        gap: 14px;
+        padding: 14px;
+        border-radius: 18px;
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(148, 163, 184, 0.14);
+      }
+
+      .goal-actions {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      .goal-confirmed-banner {
+        padding: 12px 14px;
+        border-radius: 14px;
+        background: rgba(34, 197, 94, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.24);
+        color: #bbf7d0;
+        font-size: 0.95rem;
+      }
+
+      .target-grid-summary .target-field output {
+        min-height: 44px;
+      }
+
       .target-field {
         display: grid;
         gap: 8px;
@@ -541,7 +583,7 @@
             </div>
             <div class="summary-item">
               <span class="summary-label">Gym-Check-ins</span>
-              <span class="summary-value" id="gym-count">1 / 3</span>
+              <span class="summary-value" id="gym-count-summary">1 / 3</span>
             </div>
           </div>
         </section>
@@ -571,25 +613,45 @@
                 <div class="footer-note"><strong id="selected-day-label">Heute</strong> anzeigen</div>
               </div>
               <div class="target-row">
-                <form id="target-form" class="target-grid">
-                  <div class="target-field">
-                    <label for="calorie-target">Tages-Kalorienziel</label>
-                    <input id="calorie-target" type="number" min="1000" step="50" value="2400" />
+                <div class="goal-setup-card">
+                  <div class="goal-setup-header">
+                    <div>
+                      <strong style="display:block; margin-bottom:4px;">Ziele definieren</strong>
+                      <p class="footer-note" style="margin-top:0;">Kalorien, Protein, Kohlenhydrate und Fett. Leere Felder werden automatisch berechnet.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="open-goal-editor">Ziele definieren</button>
                   </div>
-                  <div class="target-field">
-                    <label for="protein-target">Tages-Proteinziel</label>
-                    <input id="protein-target" type="number" min="50" step="5" value="140" />
+
+                  <div id="goal-editor-panel" class="goal-editor-panel" hidden>
+                    <div class="target-grid">
+                      <div class="target-field">
+                        <label for="macro-calories-input">Tages-Kalorienziel</label>
+                        <input id="macro-calories-input" type="number" min="500" step="50"/>
+                      </div>
+                      <div class="target-field">
+                        <label for="macro-protein-input">Tages-Proteinziel</label>
+                        <input id="macro-protein-input" type="number" min="0" step="5" />
+                      </div>
+                      <div class="target-field">
+                        <label for="macro-carbs-input">Kohlenhydrate Ziel</label>
+                        <input id="macro-carbs-input" type="number" min="0" step="5" />
+                      </div>
+                      <div class="target-field">
+                        <label for="macro-fat-input">Fett Ziel</label>
+                        <input id="macro-fat-input" type="number" min="0" step="1" />
+                      </div>
+                    </div>
+                    <div class="goal-actions">
+                      <button type="button" class="btn btn-primary" id="confirm-goals-btn">Ziele bestätigen</button>
+                      <button type="button" class="btn btn-secondary" id="reset-goals-btn">Vorschlag neu berechnen</button>
+                    </div>
+                    <p class="footer-note" id="goal-hint">Leere Werte werden automatisch aus dem verfügbaren Kalorienbudget berechnet.</p>
                   </div>
-                  <div class="target-field">
-                    <label>Kohlenhydrate Ziel</label>
-                    <output id="carbs-target">260 g</output>
+
+                  <div id="goal-confirmed-banner" class="goal-confirmed-banner" hidden>
+                    Makro-Ziele bestätigt. Du kannst sie jederzeit mit „Ziele ändern“ erneut anpassen.
                   </div>
-                  <div class="target-field">
-                    <label>Fett Ziel</label>
-                    <output id="fat-target">80 g</output>
-                  </div>
-                  <button type="submit" class="btn btn-primary">Ziele speichern</button>
-                </form>
+                </div>
               </div>
             </div>
 
@@ -651,6 +713,11 @@
 
             <div class="calorie-status" id="calorie-status">0 % · Grün</div>
 
+            <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap;">
+              <strong>Gescannt heute</strong>
+              <button type="button" class="btn btn-secondary" id="clear-scanned-btn">Liste leeren</button>
+            </div>
+            <div class="footer-note" id="scanned-summary">0 Produkte · 0 kcal</div>
             <div class="scanned-list" id="scanned-list"></div>
             <p class="footer-note" id="macro-note">Scanne ein Produkt, um die Makros automatisch zu laden.</p>
           </div>
@@ -660,21 +727,25 @@
       <div class="grid grid-2" style="margin-top: 24px;">
         <section class="card">
           <h2>Gym Check-in</h2>
-          <p>Markiere dein Training als erledigt oder plane den nächsten Termin.</p>
+          <p>Markiere dein Training als erledigt, plane den nächsten Termin und halte deinen Fortschritt sichtbar.</p>
           <div class="gym-actions">
             <button class="btn btn-primary" id="gym-checkin">Training eintragen</button>
             <button class="btn btn-secondary" id="gym-reset">Woche zurücksetzen</button>
           </div>
-          <p class="footer-note">Aktuelle Woche: 1 von 3 Einheiten abgeschlossen.</p>
+          <p class="footer-note">Aktuelle Woche: <strong id="gym-count">1 / 3</strong> Einheiten abgeschlossen.</p>
         </section>
 
         <section class="card">
           <h2>Aktien &amp; Finanzen</h2>
-          <p>Später hier: Watchlist, Depotübersicht und Rendite-Schätzungen.</p>
+          <p>Tracke deine Watchlist, Sparziele und wichtige Finanzkennzahlen in einem Blick.</p>
           <div class="summary-list">
             <div class="summary-item">
               <span class="summary-label">Watchlist</span>
               <span class="summary-value">3 Symbole</span>
+            </div>
+            <div class="summary-item">
+              <span class="summary-label">Sparziel</span>
+              <span class="summary-value">€ 1.500</span>
             </div>
             <div class="summary-item">
               <span class="summary-label">Gewinnziel</span>
@@ -695,6 +766,7 @@
 
       const todoCountEl = document.getElementById("todo-count");
       const gymCountEl = document.getElementById("gym-count");
+      const gymCountSummaryEl = document.getElementById("gym-count-summary");
       const todoListEl = document.getElementById("todo-list");
       const todoForm = document.getElementById("todo-form");
       const todoInput = document.getElementById("todo-input");
@@ -708,6 +780,8 @@
       const barcodeInput = document.getElementById("barcode-input");
       const barcodeLookup = document.getElementById("barcode-lookup");
       const scannedListEl = document.getElementById("scanned-list");
+      const scannedSummaryEl = document.getElementById("scanned-summary");
+      const clearScannedBtn = document.getElementById("clear-scanned-btn");
       const macroNote = document.getElementById("macro-note");
       const macroStatusEl = document.getElementById("macro-status");
       const calorieStatusEl = document.getElementById("calorie-status");
@@ -734,20 +808,113 @@
 
       const dayTabs = document.getElementById("day-tabs");
       const selectedDayLabel = document.getElementById("selected-day-label");
-      const calorieTargetInput = document.getElementById("calorie-target");
-      const proteinTargetInput = document.getElementById("protein-target");
+      const calorieTargetOutput = document.getElementById("calorie-target");
+      const proteinTargetOutput = document.getElementById("protein-target");
       const carbsTargetEl = document.getElementById("carbs-target");
       const fatTargetEl = document.getElementById("fat-target");
       const burnedCaloriesInput = document.getElementById("burned-calories");
       const saveBurnBtn = document.getElementById("save-burn");
-      const targetForm = document.getElementById("target-form");
+      const openGoalEditorBtn = document.getElementById("open-goal-editor");
+      const goalEditorPanel = document.getElementById("goal-editor-panel");
+      const goalConfirmedBanner = document.getElementById("goal-confirmed-banner");
+      const goalHint = document.getElementById("goal-hint");
+      const confirmGoalsBtn = document.getElementById("confirm-goals-btn");
+      const resetGoalsBtn = document.getElementById("reset-goals-btn");
+      const macroCaloriesInput = document.getElementById("macro-calories-input");
+      const macroProteinInput = document.getElementById("macro-protein-input");
+      const macroCarbsInput = document.getElementById("macro-carbs-input");
+      const macroFatInput = document.getElementById("macro-fat-input");
 
       const macroGoals = {
-        calories: Number(calorieTargetInput.value),
-        protein: Number(proteinTargetInput.value),
-        carbs: 0,
-        fat: 0
+        calories: 2400,
+        protein: 140,
+        carbs: 260,
+        fat: 80
       };
+
+      let goalsConfirmed = false;
+
+      function parseGoalNumber(value) {
+        const raw = String(value ?? "").replace(",", ".");
+        const parsed = Number(raw);
+        return Number.isFinite(parsed) ? parsed : NaN;
+      }
+
+
+      // Neue Makro-Formel nach Internet-Standard:
+      // Fett = 25% der Kalorien (1g Fett = 9 kcal)
+      // Protein = wie eingegeben (1g = 4 kcal)
+      // Kohlenhydrate = Rest (1g = 4 kcal)
+      function deriveMissingGoalValues() {
+        const calories = parseGoalNumber(macroCaloriesInput.value);
+        const protein = parseGoalNumber(macroProteinInput.value);
+        let carbs = parseGoalNumber(macroCarbsInput.value);
+        let fat = parseGoalNumber(macroFatInput.value);
+
+        const hasCalories = Number.isFinite(calories) && calories > 0;
+        const hasProtein = Number.isFinite(protein) && protein >= 0;
+        const hasCarbs = Number.isFinite(carbs) && carbs >= 0;
+        const hasFat = Number.isFinite(fat) && fat >= 0;
+
+        // Fett: 25% der Kalorien
+        if (hasCalories && (!hasFat || fat === 0)) {
+          fat = Math.round((calories * 0.25) / 9);
+          macroFatInput.value = String(fat);
+        }
+
+        // Kohlenhydrate: Restliche Kalorien
+        if (hasCalories && hasProtein && (!hasCarbs || carbs === 0)) {
+          const kcalProtein = protein * 4;
+          const kcalFat = fat * 9;
+          const restKcal = Math.max(0, calories - kcalProtein - kcalFat);
+          carbs = Math.round(restKcal / 4);
+          macroCarbsInput.value = String(carbs);
+        }
+
+        return {
+          calories: hasCalories ? calories : 0,
+          protein: hasProtein ? protein : 0,
+          carbs: hasCarbs ? carbs : parseGoalNumber(macroCarbsInput.value) || 0,
+          fat: hasFat ? fat : parseGoalNumber(macroFatInput.value) || 0
+        };
+      }
+
+      function syncMacroInputsFromGoals() {
+        macroCaloriesInput.value = String(macroGoals.calories || "");
+        macroProteinInput.value = String(macroGoals.protein || "");
+        macroCarbsInput.value = String(macroGoals.carbs || "");
+        macroFatInput.value = String(macroGoals.fat || "");
+      }
+
+      function applyGoalDraft() {
+        const computed = deriveMissingGoalValues();
+        macroGoals.calories = computed.calories || 0;
+        macroGoals.protein = computed.protein || 0;
+        macroGoals.carbs = computed.carbs || 0;
+        macroGoals.fat = computed.fat || 0;
+        updateGoalOutputs();
+        updateMacroCard();
+        updateDayTabs();
+      }
+
+      function setGoalInputsDisabled(disabled) {
+        [macroCaloriesInput, macroProteinInput, macroCarbsInput, macroFatInput].forEach((input) => {
+          input.disabled = disabled;
+          input.style.opacity = disabled ? "0.7" : "1";
+        });
+      }
+
+      function updateGoalOutputs() {
+        const calories = Number(macroGoals.calories) || 0;
+        const protein = Number(macroGoals.protein) || 0;
+        const carbs = Number(macroGoals.carbs) || 0;
+        const fat = Number(macroGoals.fat) || 0;
+
+        if (calorieTargetOutput) calorieTargetOutput.textContent = `${calories} kcal`;
+        if (proteinTargetOutput) proteinTargetOutput.textContent = `${protein} g`;
+        if (carbsTargetEl) carbsTargetEl.textContent = `${carbs} g`;
+        if (fatTargetEl) fatTargetEl.textContent = `${fat} g`;
+      }
 
       const productDatabase = {
         "4006381333931": {
@@ -785,17 +952,18 @@
       let barcodeDetector = null;
       let scanCanvas = null;
       let scanContext = null;
+      let scanRafId = null;
 
       function calculateDerivedGoals() {
         const proteinCalories = macroGoals.protein * 4;
         const remainingCalories = Math.max(0, macroGoals.calories - proteinCalories);
-        macroGoals.carbs = Math.round((remainingCalories * 0.60) / 4);
-        macroGoals.fat = Math.round((remainingCalories * 0.40) / 9);
-      }
 
-      function updateGoalOutputs() {
-        carbsTargetEl.textContent = `${macroGoals.carbs} g`;
-        fatTargetEl.textContent = `${macroGoals.fat} g`;
+        if (!macroGoals.carbs || macroGoals.carbs <= 0) {
+          macroGoals.carbs = Math.round((remainingCalories * 0.60) / 4);
+        }
+        if (!macroGoals.fat || macroGoals.fat <= 0) {
+          macroGoals.fat = Math.round((remainingCalories * 0.40) / 9);
+        }
       }
 
       function getSelectedDay() {
@@ -804,11 +972,12 @@
 
       function updateDayTabs() {
         dayTabs.innerHTML = "";
+        const targetCalories = Number(macroGoals.calories) || 0;
         days.forEach((day, index) => {
           const pill = document.createElement("button");
           pill.type = "button";
           pill.className = `day-pill${index === selectedDayIndex ? " selected" : ""}`;
-          const consumedPercent = macroGoals.calories > 0 ? Math.min(100, Math.round((day.totals.calories / macroGoals.calories) * 100)) : 0;
+          const consumedPercent = targetCalories > 0 ? Math.min(100, Math.round((day.totals.calories / targetCalories) * 100)) : 0;
           pill.innerHTML = `
             <span>${day.label}</span>
             <div class="day-progress"><span class="day-progress-inner" style="width: ${consumedPercent}%"></span></div>
@@ -829,28 +998,45 @@
 
       function updateMacroCard() {
         const totals = getSelectedDay().totals;
-        const percent = macroGoals.calories > 0 ? Math.min(100, Math.round((totals.calories / macroGoals.calories) * 100)) : 0;
-        const isOver = totals.calories > macroGoals.calories;
+        const targetCalories = Number(macroGoals.calories) || 0;
+        const targetProtein = Number(macroGoals.protein) || 0;
+        const targetCarbs = Number(macroGoals.carbs) || 0;
+        const targetFat = Number(macroGoals.fat) || 0;
+        const percent = targetCalories > 0 ? Math.min(100, Math.round((totals.calories / targetCalories) * 100)) : 0;
+        const isOver = totals.calories > targetCalories;
         const statusColor = isOver ? "red" : "green";
         const statusText = isOver ? "Über dem Ziel" : "Im Plan";
-        macroStatusEl.textContent = `${percent} %`;
-        calorieStatusEl.textContent = `${percent} % · ${statusText}`;
-        calorieStatusEl.className = `calorie-status ${statusColor}`;
-        caloriesValue.textContent = `${totals.calories} / ${macroGoals.calories} kcal`;
-        proteinValue.textContent = `${Math.round(totals.protein * 10) / 10} / ${macroGoals.protein} g`;
-        carbsValue.textContent = `${Math.round(totals.carbs * 10) / 10} / ${macroGoals.carbs} g`;
-        fatValue.textContent = `${Math.round(totals.fat * 10) / 10} / ${macroGoals.fat} g`;
-        caloriesBar.style.width = `${percent}%`;
-        proteinBar.style.width = `${macroGoals.protein > 0 ? Math.min(100, Math.round((totals.protein / macroGoals.protein) * 100)) : 0}%`;
-        carbsBar.style.width = `${macroGoals.carbs > 0 ? Math.min(100, Math.round((totals.carbs / macroGoals.carbs) * 100)) : 0}%`;
-        fatBar.style.width = `${macroGoals.fat > 0 ? Math.min(100, Math.round((totals.fat / macroGoals.fat) * 100)) : 0}%`;
+
+        if (macroStatusEl) macroStatusEl.textContent = `${percent} %`;
+        if (calorieStatusEl) {
+          calorieStatusEl.textContent = `${percent} % · ${statusText}`;
+          calorieStatusEl.className = `calorie-status ${statusColor}`;
+        }
+        if (caloriesValue) caloriesValue.textContent = `${totals.calories} / ${targetCalories} kcal`;
+        if (proteinValue) proteinValue.textContent = `${Math.round(totals.protein * 10) / 10} / ${targetProtein} g`;
+        if (carbsValue) carbsValue.textContent = `${Math.round(totals.carbs * 10) / 10} / ${targetCarbs} g`;
+        if (fatValue) fatValue.textContent = `${Math.round(totals.fat * 10) / 10} / ${targetFat} g`;
+        if (caloriesBar) caloriesBar.style.width = `${percent}%`;
+        if (proteinBar) proteinBar.style.width = `${targetProtein > 0 ? Math.min(100, Math.round((totals.protein / targetProtein) * 100)) : 0}%`;
+        if (carbsBar) carbsBar.style.width = `${targetCarbs > 0 ? Math.min(100, Math.round((totals.carbs / targetCarbs) * 100)) : 0}%`;
+        if (fatBar) fatBar.style.width = `${targetFat > 0 ? Math.min(100, Math.round((totals.fat / targetFat) * 100)) : 0}%`;
+
         const burned = getSelectedDay().burned || 0;
         const net = Math.max(0, totals.calories - burned);
-        document.getElementById("burn-note").textContent = `Verbrannt: ${burned} kcal · Netto: ${net} kcal`;
+        const burnNote = document.getElementById("burn-note");
+        if (burnNote) burnNote.textContent = `Verbrannt: ${burned} kcal · Netto: ${net} kcal`;
+      }
+
+      function updateScannedSummary() {
+        const selectedDay = getSelectedDay();
+        const itemCount = selectedDay.scannedItems.length;
+        const totalCalories = Math.round(selectedDay.totals.calories || 0);
+        scannedSummaryEl.textContent = `${itemCount} Produkte · ${totalCalories} kcal gesamt`;
       }
 
       function renderScannedItems() {
         const selectedDay = getSelectedDay();
+        updateScannedSummary();
         scannedListEl.innerHTML = "";
         if (selectedDay.scannedItems.length === 0) {
           scannedListEl.innerHTML = "<div class='footer-note'>Keine gescannten Produkte für diesen Tag.</div>";
@@ -971,26 +1157,44 @@
       }
 
       async function startScanner() {
-        if (!("BarcodeDetector" in window)) {
-          scannerStatus.textContent = "BarcodeDetector wird von diesem Browser nicht unterstützt.";
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+          scannerStatus.textContent = "Die Kamera-API wird von diesem Browser nicht unterstützt. Nutze bitte die manuelle Barcode-Eingabe.";
           return;
         }
 
+        stopScanner(false);
+
+        const supportsBarcodeDetector = "BarcodeDetector" in window;
+
         try {
-          if (!barcodeDetector) {
+          if (supportsBarcodeDetector && !barcodeDetector) {
             barcodeDetector = new BarcodeDetector({ formats: ["ean_13", "ean_8", "upc_e", "upc_a", "code_128"] });
           }
 
-          videoStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+          videoStream = await navigator.mediaDevices.getUserMedia({
+            video: {
+              facingMode: { ideal: "environment" },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          });
           barcodeVideo.srcObject = videoStream;
           await barcodeVideo.play();
 
           scanCanvas = document.createElement("canvas");
           scanContext = scanCanvas.getContext("2d");
-          scanning = true;
           scanStartBtn.disabled = true;
           scanStopBtn.disabled = false;
-          scannerStatus.textContent = "Kamera läuft — stoppe die Suche oder halte den Barcode vor das Objektiv.";
+          scannerStatus.textContent = "Kamera wird gestartet…";
+
+          if (!supportsBarcodeDetector) {
+            scanning = false;
+            scannerStatus.textContent = "Kamera gestartet. Automatisches Barcode-Scannen wird hier nicht unterstützt — bitte manuell eingeben.";
+            return;
+          }
+
+          scanning = true;
+          scannerStatus.textContent = "Kamera läuft — halte den Barcode vor das Objektiv oder stoppe die Suche.";
           requestAnimationFrame(scanLoop);
         } catch (error) {
           scannerStatus.textContent = `Kamera konnte nicht gestartet werden: ${error.message}`;
@@ -999,7 +1203,6 @@
 
       async function scanLoop() {
         if (!scanning || !barcodeVideo.videoWidth || !barcodeVideo.videoHeight) {
-          requestAnimationFrame(scanLoop);
           return;
         }
 
@@ -1021,14 +1224,20 @@
           return;
         }
 
-        requestAnimationFrame(scanLoop);
+        scanRafId = requestAnimationFrame(scanLoop);
       }
 
-      function stopScanner() {
+      function stopScanner(showStatus = true) {
         scanning = false;
+        if (scanRafId) {
+          cancelAnimationFrame(scanRafId);
+          scanRafId = null;
+        }
         scanStartBtn.disabled = false;
         scanStopBtn.disabled = true;
-        scannerStatus.textContent = "Scanner gestoppt.";
+        if (showStatus) {
+          scannerStatus.textContent = "Scanner gestoppt. Kamera wurde beendet.";
+        }
         if (videoStream) {
           videoStream.getTracks().forEach((track) => track.stop());
           videoStream = null;
@@ -1039,7 +1248,17 @@
       }
 
       scanStartBtn.addEventListener("click", startScanner);
-      scanStopBtn.addEventListener("click", stopScanner);
+      scanStopBtn.addEventListener("click", () => stopScanner(true));
+
+      clearScannedBtn.addEventListener("click", () => {
+        const selectedDay = getSelectedDay();
+        selectedDay.scannedItems = [];
+        selectedDay.totals = { calories: 0, protein: 0, carbs: 0, fat: 0 };
+        macroNote.textContent = "Die gescannten Produkte für diesen Tag wurden entfernt.";
+        updateDayTabs();
+        updateMacroCard();
+        renderScannedItems();
+      });
 
       barcodeLookup.addEventListener("click", async () => {
         const barcode = barcodeInput.value.trim();
@@ -1050,14 +1269,49 @@
         await handleBarcodeResult(barcode);
       });
 
-      targetForm.addEventListener("submit", (event) => {
-        event.preventDefault();
-        macroGoals.calories = Number(calorieTargetInput.value);
-        macroGoals.protein = Number(proteinTargetInput.value);
-        calculateDerivedGoals();
+      openGoalEditorBtn.addEventListener("click", () => {
+        goalEditorPanel.hidden = !goalEditorPanel.hidden;
+        if (!goalEditorPanel.hidden) {
+          syncMacroInputsFromGoals();
+          goalHint.textContent = "Leere Werte werden automatisch aus dem verfügbaren Kalorienbudget berechnet.";
+          setGoalInputsDisabled(false);
+        }
+      });
+
+      [macroCaloriesInput, macroProteinInput, macroCarbsInput, macroFatInput].forEach((input) => {
+        input.addEventListener("input", () => {
+          applyGoalDraft();
+          goalHint.textContent = "Vorschau aktualisiert — bestätige die Ziele, wenn die Werte passen.";
+        });
+      });
+
+      confirmGoalsBtn.addEventListener("click", () => {
+        const draft = deriveMissingGoalValues();
+        if (!draft.calories || draft.calories <= 0) {
+          goalHint.textContent = "Bitte mindestens ein Kalorienziel eingeben, damit die Makros sinnvoll berechnet werden können.";
+          return;
+        }
+
+        macroGoals.calories = draft.calories || 0;
+        macroGoals.protein = draft.protein || 0;
+        macroGoals.carbs = draft.carbs || 0;
+        macroGoals.fat = draft.fat || 0;
+
+        setGoalInputsDisabled(true);
+        goalsConfirmed = true;
+        goalEditorPanel.hidden = true;
+        goalConfirmedBanner.hidden = false;
+        openGoalEditorBtn.textContent = "Ziele ändern";
+        goalHint.textContent = "Makro-Ziele bestätigt. Du kannst sie später mit „Ziele ändern“ erneut anpassen.";
         updateGoalOutputs();
         updateMacroCard();
         updateDayTabs();
+      });
+
+      resetGoalsBtn.addEventListener("click", () => {
+        syncMacroInputsFromGoals();
+        applyGoalDraft();
+        goalHint.textContent = "Vorschlag neu berechnet. Bestätige die Werte, wenn sie dir passen.";
       });
 
       saveBurnBtn.addEventListener("click", () => {
@@ -1101,8 +1355,10 @@
                 </div>
               </div>
               <input type="text" id="photo-name" placeholder="Produktname" style="width: 100%; padding: 8px; border-radius: 8px; border: 1px solid var(--border); background: rgba(15, 23, 42, 0.9); color: var(--text-main);" />
-              <button type="button" class="btn btn-primary" id="photo-submit" style="width: 100%;">Nährwerte hinzufügen</button>\n            </div>
-          `;\n          document.getElementById("photo-submit").addEventListener("click", () => {
+              <button type="button" class="btn btn-primary" id="photo-submit" style="width: 100%;">Nährwerte hinzufügen</button>
+            </div>
+          `;
+          document.getElementById("photo-submit").addEventListener("click", () => {
             const name = document.getElementById("photo-name").value || "Produkt vom Foto";
             const calories = Math.round(Number(document.getElementById("photo-calories").value) || 0);
             const protein = Number(document.getElementById("photo-protein").value) || 0;
@@ -1126,6 +1382,8 @@
 
       calculateDerivedGoals();
       updateGoalOutputs();
+      syncMacroInputsFromGoals();
+      setGoalInputsDisabled(false);
       updateDayTabs();
       selectDay(0);
 
@@ -1184,7 +1442,11 @@
 
       function updateSummary() {
         todoCountEl.textContent = todos.length.toString();
-        gymCountEl.textContent = `${gymCount} / 3`;
+        const gymText = `${gymCount} / 3`;
+        gymCountEl.textContent = gymText;
+        if (gymCountSummaryEl) {
+          gymCountSummaryEl.textContent = gymText;
+        }
       }
 
       todoForm.addEventListener("submit", (event) => {
